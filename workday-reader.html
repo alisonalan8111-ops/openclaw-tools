@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球上班时间表 - 实时查看</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0f1a; color: #e2e8f0; min-height: 100vh; }
+  
+  .hero { text-align: center; padding: 60px 20px 40px; background: linear-gradient(180deg, #0f172a 0%, #0a0f1a 100%); }
+  .hero h1 { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .hero p { color: #64748b; font-size: 16px; }
+  
+  .upload-section { max-width: 700px; margin: -20px auto 40px; padding: 0 20px; }
+  .upload-box { 
+    border: 2px dashed #334155; border-radius: 20px; padding: 48px 24px; text-align: center; 
+    background: #111827; cursor: pointer; transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .upload-box:hover, .upload-box.dragover { border-color: #3b82f6; background: #1a2332; }
+  .upload-box input { display: none; }
+  .upload-icon { font-size: 52px; margin-bottom: 16px; }
+  .upload-title { font-size: 18px; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  .upload-sub { font-size: 14px; color: #64748b; }
+  .file-name { margin-top: 16px; font-size: 14px; color: #3b82f6; font-weight: 500; }
+  
+  .controls { max-width: 1400px; margin: 0 auto; padding: 0 24px 24px; display: none; }
+  .controls.show { display: block; }
+  .control-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  
+  .search-wrap { flex: 1; min-width: 240px; position: relative; }
+  .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #475569; }
+  #searchInput { width: 100%; padding: 12px 12px 12px 42px; font-size: 15px; border: 1px solid #1e293b; border-radius: 12px; background: #111827; color: #f1f5f9; outline: none; transition: border 0.2s; }
+  #searchInput:focus { border-color: #3b82f6; }
+  
+  .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 16px; font-size: 13px; border: 1px solid #1e293b; border-radius: 8px; background: #111827; color: #94a3b8; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { border-color: #3b82f6; color: #f1f5f9; }
+  .filter-btn.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+  
+  .stats-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #111827; border-radius: 10px; margin-bottom: 16px; font-size: 13px; color: #64748b; }
+  
+  .table-wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; display: none; overflow-x: auto; }
+  .table-wrap.show { display: block; }
+  
+  table { width: 100%; border-collapse: collapse; background: #111827; border-radius: 16px; overflow: hidden; min-width: 900px; }
+  thead { background: #1e293b; }
+  th { padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: #f1f5f9; }
+  th .sort-icon { margin-left: 4px; opacity: 0.5; font-size: 10px; }
+  th.sorted .sort-icon { opacity: 1; color: #3b82f6; }
+  td { padding: 13px 16px; font-size: 14px; border-top: 1px solid #1a2332; vertical-align: middle; }
+  tr:hover td { background: #1a2332; }
+  
+  .country-cell { font-weight: 600; color: #f1f5f9; }
+  .city-cell { color: #cbd5e1; }
+  .region-cell { color: #64748b; font-size: 13px; }
+  .timezone-cell { color: #475569; font-size: 12px; font-family: monospace; background: #0f172a; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+  
+  .time-local { display: flex; align-items: center; gap: 8px; }
+  .time-badge { font-weight: 600; color: #f1f5f9; }
+  .day-night { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+  .day-night.day { background: #fEF3C7; color: #92400e; }
+  .day-night.night { background: #1E3A5F; color: #93C5FD; }
+  
+  .time-bj { color: #64748b; font-size: 13px; }
+  .interval-cell { font-size: 13px; color: #94a3b8; }
+  
+  .country-flag { width: 22px; height: 16px; border-radius: 3px; vertical-align: middle; margin-right: 8px; }
+  
+  .empty-state { text-align: center; padding: 80px 20px; color: #475569; }
+  .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  
+  .no-data { text-align: center; padding: 60px; color: #475569; font-size: 15px; }
+
+  .footer { text-align: center; padding: 24px; color: #334155; font-size: 12px; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 26px; }
+    .control-row { flex-direction: column; }
+    .filter-group { width: 100%; }
+    table { font-size: 13px; }
+    th, td { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🌍 全球上班时间表</h1>
+  <p>上传 Excel 文件，实时查看世界各国工作时间</p>
+</div>
+
+<div class="upload-section">
+  <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div class="upload-icon">📂</div>
+    <div class="upload-title">点击上传 Excel 文件</div>
+    <div class="upload-sub">支持 .xlsx / .xls / .csv 格式 · 数据全程本地处理</div>
+    <div class="file-name" id="fileName"></div>
+  </div>
+</div>
+
+<div class="controls" id="controls">
+  <div class="control-row">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="搜索国家、城市、时区...">
+    </div>
+    <div class="filter-group" id="filterGroup"></div>
+  </div>
+  <div class="stats-row">
+    <span id="statsText"></span>
+    <span id="currentTime"></span>
+  </div>
+</div>
+
+<div class="table-wrap" id="tableWrap">
+  <table>
+    <thead id="tableHead"></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<div class="footer">数据全程在本地处理，不会上传到任何服务器 · 支持搜索和筛选</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script>
+let rawData = [];
+let cachedHeaders = [];
+let currentFilter = '';
+let sortCol = null;
+let sortAsc = true;
+
+const uploadBox = document.getElementById('uploadBox');
+const fileInput = document.getElementById('fileInput');
+const controls = document.getElementById('controls');
+const tableWrap = document.getElementById('tableWrap');
+const searchInput = document.getElementById('searchInput');
+const filterGroup = document.getElementById('filterGroup');
+const tableHead = document.getElementById('tableHead');
+const tableBody = document.getElementById('tableBody');
+const statsText = document.getElementById('statsText');
+const currentTimeEl = document.getElementById('currentTime');
+const fileNameEl = document.getElementById('fileName');
+
+// drag and drop
+uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+uploadBox.addEventListener('dragleave', e => { uploadBox.classList.remove('dragover'); });
+uploadBox.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadBox.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadFile(file);
+});
+
+async function loadFile(file) {
+  fileNameEl.textContent = '⏳ 正在加载: ' + file.name;
+  try {
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type: 'array', cellDates: true });
+    processWorkbook(wb, file.name);
+  } catch (err) {
+    fileNameEl.textContent = '❌ 加载失败: ' + err.message;
+  }
+}
+
+function processWorkbook(wb, fname) {
+  const sheetName = wb.SheetNames[0];
+  const sheet = wb.Sheets[sheetName];
+  const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  
+  if (json.length < 2) {
+    fileNameEl.textContent = '❌ 表格为空';
+    return;
+  }
+
+  const headers = json[0].map((h, i) => String(h).trim() || `列${i+1}`);
+  cachedHeaders = headers;
+  rawData = json.slice(1).filter(r => r.some(c => String(c).trim()));
+  
+  fileNameEl.textContent = '✅ ' + fname;
+  controls.classList.add('show');
+  tableWrap.classList.add('show');
+  
+  buildFilterButtons(headers);
+  renderTable(headers);
+  updateTime();
+  setInterval(updateTime, 1000);
+}
+
+function buildFilterButtons(headers) {
+  const countryIdx = headers.findIndex(h => ['国家','Country','country'].includes(h));
+  if (countryIdx === -1) return;
+  
+  const countries = [...new Set(rawData.map(r => r[countryIdx]).filter(Boolean))].sort();
+  filterGroup.innerHTML = `<button class="filter-btn active" data-filter="">全部</button>` +
+    countries.slice(0, 20).map(c => `<button class="filter-btn" data-filter="${c}">${c}</button>`).join('');
+  
+  filterGroup.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = () => {
+      filterGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderTable(headers);
+    };
+  });
+}
+
+function renderTable(headers) {
+  // header
+  const cols = headers.map((h, i) => {
+    const isSorted = sortCol === i;
+    return `<th data-col="${i}" class="${isSorted ? 'sorted' : ''}">${h}<span class="sort-icon">${isSorted ? (sortAsc ? '▲' : '▼') : '⇅'}</span></th>`;
+  }).join('');
+  tableHead.innerHTML = cols;
+  
+  // sort
+  let data = [...rawData];
+  if (sortCol !== null) {
+    data.sort((a, b) => {
+      const va = String(a[sortCol] || '').toLowerCase();
+      const vb = String(b[sortCol] || '').toLowerCase();
+      return sortAsc ? va.localeCompare(vb, 'zh') : vb.localeCompare(va, 'zh');
+    });
+  }
+  
+  // filter
+  const kw = searchInput.value.toLowerCase().trim();
+  const fdata = data.filter(row => {
+    const matchFilter = !currentFilter || String(row[headers.findIndex(h => ['国家','Country','country'].includes(h))] || '') === currentFilter;
+    const matchSearch = !kw || headers.some((_, i) => String(row[i] || '').toLowerCase().includes(kw));
+    return matchFilter && matchSearch;
+  });
+  
+  if (fdata.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="${headers.length}"><div class="no-data">没有找到匹配结果</div></td></tr>`;
+    statsText.textContent = `共 ${rawData.length} 条 | 显示 0 条`;
+    return;
+  }
+  
+  statsText.textContent = `共 ${rawData.length} 条 | 显示 ${fdata.length} 条`;
+  
+  const rows = fdata.map(row => {
+    const cells = row.map((cell, ci) => {
+      const h = headers[ci];
+      const v = String(cell ?? '');
+      
+      if (['国家','Country','country'].includes(h)) {
+        return `<td class="country-cell">${escapeHtml(v)}</td>`;
+      }
+      if (['城市','City','city'].includes(h)) {
+        return `<td class="city-cell">${escapeHtml(v)}</td>`;
+      }
+      if (['区域','Region','region'].includes(h)) {
+        return `<td class="region-cell">${escapeHtml(v)}</td>`;
+      }
+      if (['时区','Timezone','timezone'].includes(h)) {
+        return `<td><span class="timezone-cell">${escapeHtml(v)}</span></td>`;
+      }
+      if (['当地时间上班','Local Work Start','上班时间'].includes(h)) {
+        return `<td><div class="time-local"><span class="time-badge">${escapeHtml(v)}</span></div></td>`;
+      }
+      if (['当地时间下班','Local Work End','下班时间'].includes(h)) {
+        return `<td><div class="time-local"><span class="time-badge">${escapeHtml(v)}</span></div></td>`;
+      }
+      if (['上班对应北京时间白天/夜间','白天/夜间','Day Night'].includes(h)) {
+        const cls = v.includes('夜') || v.toLowerCase().includes('night') ? 'night' : 'day';
+        return `<td><span class="day-night ${cls}">${escapeHtml(v)}</span></td>`;
+      }
+      return `<td>${escapeHtml(v)}</td>`;
+    });
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+  
+  tableBody.innerHTML = rows;
+  
+  // sort click
+  tableHead.querySelectorAll('th').forEach(th => {
+    th.onclick = () => {
+      const col = parseInt(th.dataset.col);
+      if (sortCol === col) sortAsc = !sortAsc;
+      else { sortCol = col; sortAsc = true; }
+      renderTable(headers);
+    };
+  });
+}
+
+function updateTime() {
+  const now = new Date();
+  currentTimeEl.textContent = '🕐 当前: ' + now.toLocaleString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+searchInput.addEventListener('input', () => {
+  renderTable(cachedHeaders);
+});
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

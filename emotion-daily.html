@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪日报 - 智能分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #0f0f1a; color: #e2e8f0; min-height: 100vh; }
+  
+  .hero { text-align: center; padding: 50px 20px 30px; }
+  .hero h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #f472b6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+  .hero p { color: #64748b; font-size: 15px; }
+  
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px 60px; }
+  
+  .input-section { margin-bottom: 40px; }
+  .input-label { font-size: 14px; color: #94a3b8; margin-bottom: 10px; font-weight: 500; }
+  .input-box { width: 100%; min-height: 200px; padding: 16px; font-size: 14px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; color: #e2e8f0; resize: vertical; font-family: inherit; outline: none; }
+  .input-box:focus { border-color: #a78bfa; }
+  .input-hint { font-size: 12px; color: #475569; margin-top: 8px; text-align: center; }
+  
+  .btn-row { display: flex; gap: 12px; justify-content: center; margin: 24px 0; }
+  .btn { padding: 12px 32px; font-size: 15px; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .btn-primary { background: linear-gradient(135deg, #a78bfa, #f472b6); color: #fff; }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-secondary { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+  .btn-secondary:hover { border-color: #a78bfa; color: #e2e8f0; }
+  
+  .report { display: none; }
+  .report.show { display: block; }
+  
+  .report-header { text-align: center; padding: 30px 0; }
+  .report-date { font-size: 14px; color: #64748b; margin-bottom: 8px; }
+  .report-title { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+  
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px; }
+  .card { background: #1a1a2e; border-radius: 16px; padding: 24px 20px; text-align: center; border: 1px solid #2a2a4a; }
+  .card-value { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .card-label { font-size: 13px; color: #64748b; margin-top: 6px; }
+  
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 36px; }
+  .chart-card { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; }
+  .chart-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 20px; text-align: center; }
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap canvas { max-height: 100%; }
+  
+  .keywords-section { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; margin-bottom: 24px; }
+  .keywords-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px; }
+  .keywords-cloud { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .keyword-tag { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+  
+  .insight-card { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; margin-bottom: 24px; }
+  .insight-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 12px; }
+  .insight-text { font-size: 14px; line-height: 1.8; color: #94a3b8; }
+  
+  .timeline-card { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; }
+  .timeline-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 20px; }
+  .timeline-item { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  .timeline-time { font-size: 12px; color: #475569; min-width: 60px; font-family: monospace; }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .timeline-content { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+  
+  @media (max-width: 640px) {
+    .charts { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🌸 情绪日报</h1>
+  <p>智能分析每日情绪变化，发现内心的波动</p>
+</div>
+
+<div class="container">
+  <div class="input-section">
+    <div class="input-label">📋 粘贴今日聊天记录（纯文本）</div>
+    <textarea class="input-box" id="chatInput" placeholder="把今天的聊天记录文本粘贴到这里...
+
+支持直接复制微信聊天记录粘贴。
+系统会自动识别情绪关键词并生成分析报告。"></textarea>
+    <div class="input-hint">数据全程在本地处理，不会上传到任何服务器</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="generateReport()">生成情绪日报 ✨</button>
+      <button class="btn btn-secondary" onclick="loadSample()">查看示例 📖</button>
+    </div>
+  </div>
+
+  <div class="report" id="report">
+    <div class="report-header">
+      <div class="report-date" id="reportDate"></div>
+      <div class="report-title">🌈 今日情绪报告</div>
+    </div>
+    
+    <div class="summary-cards" id="summaryCards"></div>
+    
+    <div class="charts">
+      <div class="chart-card">
+        <div class="chart-title">情绪分布</div>
+        <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">情绪走势</div>
+        <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+      </div>
+    </div>
+    
+    <div class="keywords-section">
+      <div class="keywords-title">🔑 情绪关键词</div>
+      <div class="keywords-cloud" id="keywordsCloud"></div>
+    </div>
+    
+    <div class="timeline-card">
+      <div class="timeline-title">📊 情绪时间线</div>
+      <div id="timelineList"></div>
+    </div>
+    
+    <div class="btn-row" style="margin-top: 30px;">
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ 打印/保存PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 情绪词典
+const emotionDict = {
+  // 积极情绪
+  '开心': { category: '积极', color: '#10b981', score: 3, keywords: ['开心','高兴','快乐','愉快','幸福','兴奋','激动','棒','太棒了','不错','真好','真好笑','哈哈哈','笑死','绝了','完美','赞','给力','厉害','牛','优秀'] },
+  '平静': { category: '平静', color: '#38bdf8', score: 2, keywords: ['平静','淡定','还好','还行','没事','无所谓','无所谓','平常心','放松','轻松'] },
+  '感动': { category: '积极', color: '#34d399', score: 2, keywords: ['感动','暖心','温馨','贴心','幸福','谢谢','感谢','感激','真好','棒'] },
+  '期待': { category: '积极', color: '#a78bfa', score: 2, keywords: ['期待','希望','盼望','想','希望','憧憬','向往'] },
+  
+  // 消极情绪
+  '生气': { category: '消极', color: '#ef4444', score: -3, keywords: ['生气','愤怒','气','怒','火','气愤','恼火','不爽','讨厌','烦人','恶心','滚','神经病','有病','废物','垃圾'] },
+  '焦虑': { category: '消极', color: '#f97316', score: -2, keywords: ['焦虑','担心','忧虑','不安','紧张','怕','慌','着急','心慌','忐忑','鸭梨','压力','焦虑'] },
+  '难过': { category: '消极', color: '#6366f1', score: -2, keywords: ['难过','伤心','悲伤','痛苦','难受','心碎','失落','沮丧','沮丧','低落的','绝望','崩溃'] },
+  '孤独': { category: '消极', color: '#8b5cf6', score: -2, keywords: ['孤独','孤单','寂寞','无聊','空虚','没人','没人理'] },
+  '委屈': { category: '消极', color: '#ec4899', score: -2, keywords: ['委屈','冤枉','委屈','不公平','委屈','憋屈'] },
+  '疲惫': { category: '消极', color: '#64748b', score: -1, keywords: ['累','疲惫','疲倦','困','困了','累了','精疲','无力','没精神'] },
+  
+  // 中性/疑问
+  '疑惑': { category: '中性', color: '#94a3b8', score: 0, keywords: ['？','?','怎么','为什么','什么','干嘛','是不是','能不能','会不会','行不行','可以吗','为什么'] },
+};
+
+function analyzeEmotions(text) {
+  const results = { categories: {}, totalScore: 0, count: 0, timeline: [], matchedKeywords: [] };
+  const sentences = text.split(/[。！？\n]/).filter(s => s.trim().length > 0);
+  
+  sentences.forEach(sentence => {
+    let maxScore = 0;
+    let foundEmotion = null;
+    
+    for (const [emotion, data] of Object.entries(emotionDict)) {
+      for (const kw of data.keywords) {
+        if (sentence.includes(kw)) {
+          if (Math.abs(data.score) > Math.abs(maxScore)) {
+            maxScore = data.score;
+            foundEmotion = emotion;
+          }
+          if (!results.matchedKeywords.find(k => k.keyword === kw)) {
+            results.matchedKeywords.push({ keyword: kw, emotion, sentence: sentence.trim().slice(0, 50) });
+          }
+        }
+      }
+    }
+    
+    if (foundEmotion) {
+      results.categories[foundEmotion] = (results.categories[foundEmotion] || 0) + 1;
+      results.totalScore += maxScore;
+      results.count++;
+    }
+  });
+  
+  return results;
+}
+
+function getOverallScore(totalScore, count) {
+  if (count === 0) return { level: '数据不足', color: '#64748b', emoji: '🤔', desc: '今日记录较少，无法判断' };
+  const avg = totalScore / count;
+  if (avg > 1.5) return { level: '心情很好', color: '#10b981', emoji: '😊', desc: '今天整体情绪非常积极，继续保持！' };
+  if (avg > 0.5) return { level: '心情不错', color: '#34d399', emoji: '🙂', desc: '今天情绪偏正向，生活状态不错' };
+  if (avg > -0.5) return { level: '心情平静', color: '#38bdf8', emoji: '😌', desc: '今天心态平稳，波澜不惊' };
+  if (avg > -1.5) return { level: '心情低落', color: '#f97316', emoji: '😔', desc: '今天有些负面情绪，注意休息' };
+  return { level: '情绪波动', color: '#ef4444', emoji: '😢', desc: '今天情绪波动较大，建议关注身心健康' };
+}
+
+let pieChart, lineChart;
+
+function generateReport() {
+  const text = document.getElementById('chatInput').value.trim();
+  if (!text) { alert('请先粘贴聊天记录'); return; }
+  
+  const analysis = analyzeEmotions(text);
+  const overall = getOverallScore(analysis.totalScore, analysis.count);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  
+  document.getElementById('reportDate').textContent = dateStr;
+  document.getElementById('report').classList.add('show');
+  
+  // Summary cards
+  const catKeys = Object.keys(analysis.categories);
+  const dominant = catKeys.length > 0 ? catKeys.sort((a, b) => analysis.categories[b] - analysis.categories[a])[0] : '暂无';
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card">
+      <div class="card-value">${overall.emoji}</div>
+      <div class="card-label">${overall.level}</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px">${analysis.count}</div>
+      <div class="card-label">情绪信号次数</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px">${catKeys.length}</div>
+      <div class="card-label">情绪类型数</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px;background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${dominant}</div>
+      <div class="card-label">主导情绪</div>
+    </div>
+  `;
+  
+  // Keywords cloud
+  const emotionColors = {
+    '开心': '#10b981', '平静': '#38bdf8', '感动': '#34d399', '期待': '#a78bfa',
+    '生气': '#ef4444', '焦虑': '#f97316', '难过': '#6366f1', '孤独': '#8b5cf6',
+    '委屈': '#ec4899', '疲惫': '#64748b', '疑惑': '#94a3b8'
+  };
+  const kwHtml = analysis.matchedKeywords.slice(0, 20).map(m => {
+    const color = emotionColors[m.emotion] || '#94a3b8';
+    const size = 12 + Math.random() * 8;
+    return `<span class="keyword-tag" style="background:${color}22;color:${color};font-size:${size}px;border:1px solid ${color}44">${m.keyword}</span>`;
+  }).join('');
+  document.getElementById('keywordsCloud').innerHTML = kwHtml || '<span style="color:#475569">未检测到情绪关键词</span>';
+  
+  // Pie chart
+  if (pieChart) pieChart.destroy();
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  const pieLabels = catKeys;
+  const pieData = catKeys.map(k => analysis.categories[k]);
+  const pieColors = pieLabels.map(k => emotionColors[k] || '#94a3b8');
+  pieChart = new Chart(pieCtx, {
+    type: 'doughnut',
+    data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, font: { size: 12 } } } } }
+  });
+  
+  // Line chart (simulated timeline from sentence count distribution)
+  if (lineChart) lineChart.destroy();
+  const lineCtx = document.getElementById('lineChart').getContext('2d');
+  const sentences = text.split(/[。！？\n]/).filter(s => s.trim().length > 0);
+  const segmentSize = Math.max(1, Math.ceil(sentences.length / 6));
+  const segments = [];
+  for (let i = 0; i < 6; i++) {
+    const seg = sentences.slice(i * segmentSize, (i + 1) * segmentSize).join('');
+    const segAnalysis = analyzeEmotions(seg);
+    segments.push(segAnalysis.count > 0 ? segAnalysis.totalScore / segAnalysis.count : 0);
+  }
+  lineChart = new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: ['凌晨', '上午', '中午', '下午', '傍晚', '夜间'],
+      datasets: [{
+        label: '情绪指数',
+        data: segments,
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(167,139,250,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#a78bfa'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: -3, max: 3, grid: { color: '#2a2a4a' }, ticks: { color: '#64748b', callback: v => v > 0 ? '😊' : v < 0 ? '😢' : '😐' } },
+        x: { grid: { color: '#2a2a4a' }, ticks: { color: '#64748b' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+  
+  // Timeline
+  const timelineItems = analysis.matchedKeywords.slice(0, 8);
+  document.getElementById('timelineList').innerHTML = timelineItems.map(item => {
+    const color = emotionColors[item.emotion] || '#94a3b8';
+    return `<div class="timeline-item">
+      <div class="timeline-dot" style="background:${color}"></div>
+      <div class="timeline-content">${item.sentence}</div>
+    </div>`;
+  }).join('') || '<div style="color:#475569;text-align:center;padding:20px">暂无情绪时间线数据</div>';
+  
+  document.getElementById('report').scrollIntoView({ behavior: 'smooth' });
+}
+
+function loadSample() {
+  document.getElementById('chatInput').value = `今天加班到很晚，好累啊，感觉压力好大。
+老板又临时加需求，真的很生气！
+不过下班后吃了顿火锅，心情好多了。
+明天要开会，希望顺利吧。
+回家躺着什么都不想做，好疲惫...
+还好有你在，不然今天真不知道怎么撑过去。
+突然想起以前的事，有点难过。
+算了不想了，睡觉吧，晚安。
+`;
+  document.getElementById('chatInput').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
