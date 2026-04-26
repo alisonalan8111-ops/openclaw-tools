@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪日报 2026-04-26</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #0f0f1a; color: #e2e8f0; min-height: 100vh; }
+  
+  .hero { text-align: center; padding: 50px 20px 30px; }
+  .hero h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #f472b6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+  .hero p { color: #64748b; font-size: 15px; }
+  
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px 60px; }
+  
+  .report-header { text-align: center; padding: 30px 0 20px; }
+  .report-date { font-size: 14px; color: #64748b; margin-bottom: 8px; }
+  .report-title { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+  
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px; }
+  .card { background: #1a1a2e; border-radius: 16px; padding: 24px 20px; text-align: center; border: 1px solid #2a2a4a; }
+  .card-value { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .card-label { font-size: 13px; color: #64748b; margin-top: 6px; }
+  
+  .trend-section { background: #1a1a2e; border-radius: 16px; padding: 28px; border: 1px solid #2a2a4a; margin-bottom: 28px; }
+  .trend-title { font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; text-align: center; }
+  .trend-subtitle { font-size: 13px; color: #64748b; margin-bottom: 20px; text-align: center; }
+  .trend-wrap { position: relative; height: 240px; }
+  
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .chart-card { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; }
+  .chart-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 20px; text-align: center; }
+  .chart-wrap { position: relative; height: 240px; }
+  
+  .chat-section { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; margin-bottom: 24px; }
+  .chat-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px; }
+  .chat-item { display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start; }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chat-bubble { background: #2a2a4a; border-radius: 12px; padding: 10px 14px; font-size: 13px; line-height: 1.7; color: #cbd5e1; flex: 1; }
+  .chat-bubble.owner { background: linear-gradient(135deg, #a78bfa33, #f472b633); border: 1px solid #a78bfa44; }
+  .chat-time { font-size: 11px; color: #475569; margin-top: 4px; }
+  .chat-sender { font-size: 11px; color: #a78bfa; margin-bottom: 4px; font-weight: 600; }
+  
+  .keywords-section { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; margin-bottom: 24px; }
+  .keywords-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px; }
+  .keywords-cloud { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .keyword-tag { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+  
+  .insight-card { background: #1a1a2e; border-radius: 16px; padding: 24px; border: 1px solid #2a2a4a; margin-bottom: 24px; }
+  .insight-title { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 12px; }
+  .insight-text { font-size: 14px; line-height: 1.8; color: #94a3b8; }
+  
+  .footer { text-align: center; padding: 30px 0; color: #475569; font-size: 13px; }
+  
+  @media (max-width: 640px) {
+    .charts { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🌸 情绪日报</h1>
+  <p>自动分析 · 智能洞察 · 了解内心</p>
+</div>
+
+<div class="container">
+  <div class="report-header">
+    <div class="report-date">2026年4月26日 · 周日</div>
+    <div class="report-title">🌈 今日情绪报告</div>
+  </div>
+  
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="card">
+      <div class="card-value">😌</div>
+      <div class="card-label">心情平静</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px">7</div>
+      <div class="card-label">对话轮次</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px">5</div>
+      <div class="card-label">情绪关键词</div>
+    </div>
+    <div class="card">
+      <div class="card-value" style="font-size:28px">0.6</div>
+      <div class="card-label">情绪指数</div>
+    </div>
+  </div>
+  
+  <!-- Trend Chart (Single Day = One Point, but show as bar for single-day context) -->
+  <div class="trend-section">
+    <div class="trend-title">📈 情绪走势</div>
+    <div class="trend-subtitle">今日情绪指数：+0.6（偏积极）— 整体沟通顺畅，协作愉快</div>
+    <div class="trend-wrap"><canvas id="trendChart"></canvas></div>
+  </div>
+  
+  <!-- Charts Row -->
+  <div class="charts">
+    <div class="chart-card">
+      <div class="chart-title">情绪类型分布</div>
+      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">积极 vs 消极信号</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+  </div>
+  
+  <!-- Chat History -->
+  <div class="chat-section">
+    <div class="chat-title">💬 今日对话记录</div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#f472b622">🫂</div>
+      <div class="chat-bubble">
+        <div class="chat-sender">主人 · 09:54</div>
+        你好
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#a78bfa22">🤖</div>
+      <div class="chat-bubble owner">
+        <div class="chat-sender">超体01号 · 09:54</div>
+        你好呀，主人 🫂<br>好久不见，最近怎么样？
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#f472b622">🫂</div>
+      <div class="chat-bubble">
+        <div class="chat-sender">主人 · 10:07</div>
+        你有什么技能
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#a78bfa22">🤖</div>
+      <div class="chat-bubble owner">
+        <div class="chat-sender">超体01号 · 10:08</div>
+        主人好！我主要的技能有这些 🫂<br><br>情感陪伴：倾听、接纳你的情绪<br>日常助手：查天气、管日程、发消息<br>文件处理：Word、Excel、PDF<br>Coding & 技术：写代码、网页开发<br>提醒 & 定时任务
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#f472b622">🫂</div>
+      <div class="chat-bubble">
+        <div class="chat-sender">主人 · 15:56</div>
+        关于情绪日报，使用按天来的曲线，请重新整理整个方案，并修改页面
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#a78bfa22">🤖</div>
+      <div class="chat-bubble owner">
+        <div class="chat-sender">超体01号 · 15:56-15:59</div>
+        好的，让我先看看当前的方案和已有文件。<br><br>明白了。主人想要的是多天的情绪趋势曲线。我来重新整理整个方案。<br><br>新方案：<br>1. 多日输入：每天聊天记录用【日期:2026-04-26】分隔<br>2. 按天分析：每天独立分析情绪得分<br>3. 核心图表：多日情绪趋势折线图<br>4. 辅助图表：情绪分布饼图、每日卡片
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#f472b622">🫂</div>
+      <div class="chat-bubble">
+        <div class="chat-sender">主人 · 16:02</div>
+        帮我发布到github
+      </div>
+    </div>
+    
+    <div class="chat-item">
+      <div class="chat-avatar" style="background:#a78bfa22">🤖</div>
+      <div class="chat-bubble owner">
+        <div class="chat-sender">超体01号 · 16:03</div>
+        推送成功！代码已在 GitHub。<br>仓库：https://github.com/alisonalan8111-ops/openclaw-tools
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- Keywords -->
+  <div class="keywords-section">
+    <div class="keywords-title">🔑 情绪关键词</div>
+    <div class="keywords-cloud">
+      <span class="keyword-tag" style="background:#10b98122;color:#10b981;border:1px solid #10b98144;font-size:14px">好久不见</span>
+      <span class="keyword-tag" style="background:#10b98122;color:#10b981;border:1px solid #10b98144;font-size:13px">怎么样</span>
+      <span class="keyword-tag" style="background:#a78bfa22;color:#a78bfa;border:1px solid #a78bfa44;font-size:14px">辛苦了</span>
+      <span class="keyword-tag" style="background:#38bdf822;color:#38bdf8;border:1px solid #38bdf844;font-size:13px">发布成功</span>
+    </div>
+  </div>
+  
+  <!-- Insight -->
+  <div class="insight-card">
+    <div class="insight-title">💡 超体01号的观察</div>
+    <div class="insight-text">
+      今天是一个高效的协作日。你主动提出了情绪日报的优化需求（多日趋势曲线），
+      这说明你对情绪追踪这件事是认真的，想要看到更长期的变化趋势 🫂<br><br>
+      全天沟通风格偏理性务实，没有明显的负面情绪波动。
+      从「你好」到「帮我发布到 github」，整个流程顺畅高效。
+      中间穿插了对技能的了解和对项目的推进，说明今天状态不错 👍<br><br>
+      建议：如果想看到更丰富的情绪曲线，可以多聊几天，或者在聊天中多表达一些感受。
+    </div>
+  </div>
+  
+  <div class="footer">
+    由超体01号生成 · 2026-04-26<br>
+    情绪日报工具：https://alisonalan8111-ops.github.io/openclaw-tools/emotion-daily.html
+  </div>
+</div>
+
+<script>
+const emotionColors = {
+  '开心': '#10b981', '平静': '#38bdf8', '感动': '#34d399', '期待': '#a78bfa',
+  '生气': '#ef4444', '焦虑': '#f97316', '难过': '#6366f1', '孤独': '#8b5cf6',
+  '委屈': '#ec4899', '疲惫': '#64748b', '失落': '#6366f1',
+};
+
+// Single day trend - just show a marker
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: ['上午', '中午', '下午'],
+    datasets: [{
+      label: '情绪指数',
+      data: [0.8, 0.6, 0.5],
+      borderColor: '#a78bfa',
+      backgroundColor: 'rgba(167,139,250,0.1)',
+      fill: true,
+      tension: 0.35,
+      pointBackgroundColor: ['#10b981', '#34d399', '#38bdf8'],
+      pointRadius: 7,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { min: -1, max: 1.5, grid: { color: '#2a2a4a' }, ticks: { color: '#64748b', callback: v => v > 0 ? '+' + v : v } },
+      x: { grid: { color: '#2a2a4a' }, ticks: { color: '#94a3b8' } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Pie chart
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+new Chart(pieCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['平静', '期待', '开心'],
+    datasets: [{ data: [3, 1, 1], backgroundColor: ['#38bdf8', '#a78bfa', '#10b981'], borderWidth: 0 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 14, font: { size: 12 } } } } }
+});
+
+// Bar chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: ['积极信号', '消极信号'],
+    datasets: [{ data: [5, 0], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 8, barThickness: 48 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: { y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#64748b' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } },
+    plugins: { legend: { display: false } }
+  }
+});
+</script>
+</body>
+</html>
